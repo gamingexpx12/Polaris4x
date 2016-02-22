@@ -184,6 +184,16 @@ namespace RTS_Cam
 
         #endregion
 
+        #region Debug Fields
+
+        public bool keyboardMove;
+
+        public bool panningMove;
+
+        public bool mouseMove;
+
+        #endregion
+
         #region RTSCamera_Methods
 
         /// <summary>
@@ -194,20 +204,20 @@ namespace RTS_Cam
             if (FollowingTarget)
                 FollowTarget();
             else
+                DebugReset();
                 Move();
 
             HeightCalculation();
             Rotation();
             LimitPosition();
-            ShiftPerspective();
         }
 
         /// <summary>
-        /// move camera with keyboard or with screen edge
+        /// Move camera with keyboard or with screen edge, emphasis on OR.
         /// </summary>
         private void Move()
         {
-            if (useKeyboardInput)
+            if (useKeyboardInput && KeyboardInput != Vector2.zero)
             {
                 Vector3 desiredMove = new Vector3(KeyboardInput.x, 0, KeyboardInput.y);
 
@@ -217,9 +227,19 @@ namespace RTS_Cam
                 desiredMove = m_Transform.InverseTransformDirection(desiredMove);
 
                 m_Transform.Translate(desiredMove, Space.Self);
+
+                //Debug
+                if (!desiredMove.Equals(Vector3.zero))
+                {
+                    keyboardMove = true;
+                }
+                else
+                {
+                    keyboardMove = false;
+                }
             }
 
-            if (usePanning && Input.GetKey(panningKey) && MouseAxis != Vector2.zero)
+            else if (usePanning && Input.GetKey(panningKey) /*&& MouseAxis != Vector2.zero*/)
             {
                 Vector3 desiredMove = new Vector3(-MouseAxis.x, 0, -MouseAxis.y);
 
@@ -229,6 +249,9 @@ namespace RTS_Cam
                 desiredMove = m_Transform.InverseTransformDirection(desiredMove);
 
                 m_Transform.Translate(desiredMove, Space.Self);
+
+                //Debug
+                panningMove = true;
             }
 
             else if (useScreenEdgeInput)
@@ -239,8 +262,6 @@ namespace RTS_Cam
                 Rect rightRect = new Rect(Screen.width - screenEdgeBorder, 0, screenEdgeBorder, Screen.height);
                 Rect upRect = new Rect(0, Screen.height - screenEdgeBorder, Screen.width, screenEdgeBorder);
                 Rect downRect = new Rect(0, 0, Screen.width, screenEdgeBorder);
-
-                
                 
                 desiredMove.x = leftRect.Contains(MouseInput) ? -1 : rightRect.Contains(MouseInput) ? 1 : 0;
                 desiredMove.z = upRect.Contains(MouseInput) ? 1 : downRect.Contains(MouseInput) ? -1 : 0;
@@ -250,7 +271,15 @@ namespace RTS_Cam
                 desiredMove = Quaternion.Euler(new Vector3(0f, transform.eulerAngles.y, 0f)) * desiredMove;
                 desiredMove = m_Transform.InverseTransformDirection(desiredMove);
 
-                m_Transform.Translate(desiredMove, Space.Self); 
+                m_Transform.Translate(desiredMove, Space.Self);
+
+                //Debug
+
+                if (desiredMove != Vector3.zero)
+                {
+                    mouseMove = true;
+                }
+
                 
             }       
         
@@ -345,7 +374,12 @@ namespace RTS_Cam
             return 0f;
         }
 
-        private void ShiftPerspective() { }
+        private void DebugReset()
+        {
+            keyboardMove = false;
+            panningMove = false;
+            mouseMove = false;
+        }
 
         #endregion
     }
