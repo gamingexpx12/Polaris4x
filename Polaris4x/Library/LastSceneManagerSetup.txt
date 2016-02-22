@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Polaris/Scene/test.unity
+- path: Assets/RTS_Camera/Demo/Demo_Scene.unity
   isLoaded: 1
   isActive: 1
